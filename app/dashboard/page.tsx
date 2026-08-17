@@ -1,10 +1,15 @@
 import { AppShell } from "@/components/layout/AppShell";
 import { TimeEntryWorkspace } from "@/components/timesheet/TimeEntryWorkspace";
 import { WeeklyActivityNotes } from "@/components/timesheet/WeeklyActivityNotes";
+import { HolidayPrompt } from "@/components/timesheet/HolidayPrompt";
+import { AlertBadge } from "@/components/shared/AlertBadge";
 import { auth } from "@/lib/auth";
-import { listActiveProjects } from "@/lib/db/queries/projects";
+import { listActiveProjects, getProjectByName } from "@/lib/db/queries/projects";
 import { getOrCreateWeeklyTimesheet, getTimeEntriesForTimesheet } from "@/lib/db/queries/timesheets";
+import { getHolidaysInRange } from "@/lib/db/queries/holidays";
 import { formatWeekRange, getWeekDates, getWeekStart, formatDateISO } from "@/lib/utils/week";
+import { filterUnloggedHolidays } from "@/lib/utils/holidays";
+import { computeTotals } from "@/lib/utils/totals";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -12,9 +17,11 @@ export default async function DashboardPage() {
 
   const weekStartISO = formatDateISO(getWeekStart());
   const timesheet = await getOrCreateWeeklyTimesheet(userId, weekStartISO);
-  const [projects, entries] = await Promise.all([
+  const [projects, entries, holidaysInWeek, holidayProject] = await Promise.all([
     listActiveProjects(),
     getTimeEntriesForTimesheet(timesheet.id),
+    getHolidaysInRange(timesheet.weekStartDate, timesheet.weekEndDate),
+    getProjectByName("Holiday"),
   ]);
 
   const weekDates = getWeekDates(getWeekStart());
@@ -28,15 +35,24 @@ export default async function DashboardPage() {
     notes: e.notes,
     hours: Number(e.hours),
   }));
+  const unloggedHolidays = filterUnloggedHolidays(
+    holidaysInWeek,
+    entryRecords,
+    holidayProject?.id ?? null,
+  );
+  const weekTotal = computeTotals(entryRecords).weekTotal;
 
   return (
     <AppShell>
       <div className="mb-4 flex flex-col gap-1">
         <h1 className="text-2xl font-bold text-brand-gray">This Week</h1>
-        <p className="text-brand-gray">
+        <p className="flex items-center gap-3 text-brand-gray">
           {formatWeekRange(timesheet.weekStartDate, timesheet.weekEndDate)}
+          {weekTotal > 40 && <AlertBadge>Overtime — {weekTotal.toFixed(2)} hrs</AlertBadge>}
         </p>
       </div>
+
+      <HolidayPrompt timesheetId={timesheet.id} holidays={unloggedHolidays} />
 
       <TimeEntryWorkspace
         timesheetId={timesheet.id}
@@ -70,6 +86,12 @@ export default async function DashboardPage() {
           className="h-12 rounded-md border-2 border-brand-red px-6 py-3 text-lg font-semibold text-brand-red hover:bg-brand-red hover:text-brand-white"
         >
           Download Excel
+        </a>
+        <a
+          href={`/api/timesheets/${timesheet.id}/csv`}
+          className="h-12 rounded-md border-2 border-brand-red px-6 py-3 text-lg font-semibold text-brand-red hover:bg-brand-red hover:text-brand-white"
+        >
+          Download CSV
         </a>
       </div>
     </AppShell>

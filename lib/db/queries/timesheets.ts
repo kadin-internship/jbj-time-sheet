@@ -1,4 +1,4 @@
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { timeEntries, users, weeklyTimesheets } from "@/lib/db/schema";
 import { addDays, formatDateISO, parseDateISO } from "@/lib/utils/week";
@@ -97,7 +97,51 @@ export async function listTimesheetsForWeek(weekStartISO: string) {
   return rows;
 }
 
-export async function listAllTimesheetsWithUser() {
+export async function listHoursByEmployeeForWeek(weekStartISO: string) {
+  const rows = await db
+    .select({
+      userId: users.id,
+      employeeName: users.fullName,
+      hours: sql<string>`coalesce(sum(${timeEntries.hours}), 0)`,
+    })
+    .from(users)
+    .leftJoin(
+      weeklyTimesheets,
+      and(eq(weeklyTimesheets.userId, users.id), eq(weeklyTimesheets.weekStartDate, weekStartISO)),
+    )
+    .leftJoin(timeEntries, eq(timeEntries.weeklyTimesheetId, weeklyTimesheets.id))
+    .where(eq(users.active, true))
+    .groupBy(users.id, users.fullName)
+    .orderBy(desc(sql`coalesce(sum(${timeEntries.hours}), 0)`));
+
+  return rows.map((r) => ({ ...r, hours: Number(r.hours) }));
+}
+
+export async function listWeeklyHoursTrend(weeksCount: number) {
+  const rows = await db
+    .select({
+      weekStartDate: weeklyTimesheets.weekStartDate,
+      hours: sql<string>`coalesce(sum(${timeEntries.hours}), 0)`,
+    })
+    .from(weeklyTimesheets)
+    .leftJoin(timeEntries, eq(timeEntries.weeklyTimesheetId, weeklyTimesheets.id))
+    .groupBy(weeklyTimesheets.weekStartDate)
+    .orderBy(desc(weeklyTimesheets.weekStartDate))
+    .limit(weeksCount);
+
+  return rows.map((r) => ({ ...r, hours: Number(r.hours) })).reverse();
+}
+
+export async function listAllTimesheetsWithUser(filters?: {
+  userId?: string;
+  from?: string;
+  to?: string;
+}) {
+  const conditions = [];
+  if (filters?.userId) conditions.push(eq(weeklyTimesheets.userId, filters.userId));
+  if (filters?.from) conditions.push(gte(weeklyTimesheets.weekStartDate, filters.from));
+  if (filters?.to) conditions.push(lte(weeklyTimesheets.weekEndDate, filters.to));
+
   const rows = await db
     .select({
       id: weeklyTimesheets.id,
@@ -109,6 +153,7 @@ export async function listAllTimesheetsWithUser() {
     .from(weeklyTimesheets)
     .innerJoin(users, eq(users.id, weeklyTimesheets.userId))
     .leftJoin(timeEntries, eq(timeEntries.weeklyTimesheetId, weeklyTimesheets.id))
+    .where(conditions.length > 0 ? and(...conditions) : undefined)
     .groupBy(weeklyTimesheets.id, users.fullName)
     .orderBy(desc(weeklyTimesheets.weekStartDate));
 

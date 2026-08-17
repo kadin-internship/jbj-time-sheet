@@ -9,6 +9,7 @@ import {
   numeric,
   date,
   timestamp,
+  jsonb,
   unique,
   index,
   check,
@@ -22,6 +23,8 @@ export const activityTypeEnum = pgEnum("activity_type", [
   "administrative",
   "other",
 ]);
+export const ptoTypeEnum = pgEnum("pto_type", ["pto", "sick"]);
+export const ptoStatusEnum = pgEnum("pto_status", ["pending", "approved", "denied"]);
 
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -38,6 +41,7 @@ export const projects = pgTable("projects", {
   name: varchar("name", { length: 128 }).notNull().unique(),
   isActive: boolean("is_active").notNull().default(true),
   sortOrder: integer("sort_order").notNull().default(0),
+  budgetHours: numeric("budget_hours", { precision: 6, scale: 2 }), // null = not tracked
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -106,3 +110,54 @@ export const meetingAttendees = pgTable("meeting_attendees", {
   userId: uuid("user_id").references(() => users.id),
   freeTextName: varchar("free_text_name", { length: 128 }),
 });
+
+export const companyHolidays = pgTable("company_holidays", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  date: date("date").notNull().unique(),
+  name: varchar("name", { length: 128 }).notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const ptoRequests = pgTable(
+  "pto_requests",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id),
+    type: ptoTypeEnum("type").notNull(),
+    startDate: date("start_date").notNull(),
+    endDate: date("end_date").notNull(),
+    reason: text("reason"),
+    status: ptoStatusEnum("status").notNull().default("pending"),
+    reviewedByUserId: uuid("reviewed_by_user_id").references(() => users.id),
+    reviewedAt: timestamp("reviewed_at"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [check("pto_requests_end_after_start", sql`${t.endDate} >= ${t.startDate}`)],
+);
+
+// entityType: "time_entry" | "weekly_notes" | "pto_request"
+// action: "create" | "update" | "delete" | "approve" | "deny"
+export const auditLog = pgTable(
+  "audit_log",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    actorUserId: uuid("actor_user_id")
+      .notNull()
+      .references(() => users.id),
+    entityType: varchar("entity_type", { length: 32 }).notNull(),
+    entityId: uuid("entity_id").notNull(),
+    action: varchar("action", { length: 16 }).notNull(),
+    targetUserId: uuid("target_user_id")
+      .notNull()
+      .references(() => users.id),
+    before: jsonb("before"),
+    after: jsonb("after"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [
+    index("audit_log_target_created_idx").on(t.targetUserId, t.createdAt),
+    index("audit_log_created_idx").on(t.createdAt),
+  ],
+);

@@ -3,10 +3,15 @@ import { notFound } from "next/navigation";
 import { AppShell } from "@/components/layout/AppShell";
 import { TimeEntryWorkspace } from "@/components/timesheet/TimeEntryWorkspace";
 import { WeeklyActivityNotes } from "@/components/timesheet/WeeklyActivityNotes";
+import { HolidayPrompt } from "@/components/timesheet/HolidayPrompt";
+import { AlertBadge } from "@/components/shared/AlertBadge";
 import { auth } from "@/lib/auth";
-import { listActiveProjects } from "@/lib/db/queries/projects";
+import { listActiveProjects, getProjectByName } from "@/lib/db/queries/projects";
 import { getOrCreateWeeklyTimesheet, getTimeEntriesForTimesheet } from "@/lib/db/queries/timesheets";
+import { getHolidaysInRange } from "@/lib/db/queries/holidays";
 import { addDays, formatDateISO, formatWeekRange, getWeekDates, parseDateISO } from "@/lib/utils/week";
+import { filterUnloggedHolidays } from "@/lib/utils/holidays";
+import { computeTotals } from "@/lib/utils/totals";
 
 const WEEK_START_RE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -22,9 +27,11 @@ export default async function TimesheetWeekPage({
   const userId = session!.user.id;
 
   const timesheet = await getOrCreateWeeklyTimesheet(userId, weekStart);
-  const [projects, entries] = await Promise.all([
+  const [projects, entries, holidaysInWeek, holidayProject] = await Promise.all([
     listActiveProjects(),
     getTimeEntriesForTimesheet(timesheet.id),
+    getHolidaysInRange(timesheet.weekStartDate, timesheet.weekEndDate),
+    getProjectByName("Holiday"),
   ]);
 
   const weekDates = getWeekDates(parseDateISO(weekStart));
@@ -38,6 +45,12 @@ export default async function TimesheetWeekPage({
     notes: e.notes,
     hours: Number(e.hours),
   }));
+  const unloggedHolidays = filterUnloggedHolidays(
+    holidaysInWeek,
+    entryRecords,
+    holidayProject?.id ?? null,
+  );
+  const weekTotal = computeTotals(entryRecords).weekTotal;
 
   const prevWeek = formatDateISO(addDays(parseDateISO(weekStart), -7));
   const nextWeek = formatDateISO(addDays(parseDateISO(weekStart), 7));
@@ -55,8 +68,11 @@ export default async function TimesheetWeekPage({
           <Link href={`/timesheets/${nextWeek}`} className="text-lg text-brand-red hover:underline">
             Next Week &rarr;
           </Link>
+          {weekTotal > 40 && <AlertBadge>Overtime — {weekTotal.toFixed(2)} hrs</AlertBadge>}
         </div>
       </div>
+
+      <HolidayPrompt timesheetId={timesheet.id} holidays={unloggedHolidays} />
 
       <TimeEntryWorkspace
         timesheetId={timesheet.id}
@@ -90,6 +106,12 @@ export default async function TimesheetWeekPage({
           className="h-12 rounded-md border-2 border-brand-red px-6 py-3 text-lg font-semibold text-brand-red hover:bg-brand-red hover:text-brand-white"
         >
           Download Excel
+        </a>
+        <a
+          href={`/api/timesheets/${timesheet.id}/csv`}
+          className="h-12 rounded-md border-2 border-brand-red px-6 py-3 text-lg font-semibold text-brand-red hover:bg-brand-red hover:text-brand-white"
+        >
+          Download CSV
         </a>
       </div>
     </AppShell>

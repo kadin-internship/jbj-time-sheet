@@ -20,6 +20,20 @@ export function AddProjectForm() {
           className="h-12 w-72 rounded-md border border-brand-rose/50 px-3 text-lg focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/30"
         />
       </div>
+      <div className="flex flex-col gap-1">
+        <label className="text-base font-medium text-brand-gray" htmlFor="budgetHours">
+          Budget Hours (optional)
+        </label>
+        <input
+          id="budgetHours"
+          name="budgetHours"
+          type="number"
+          min={0}
+          step={0.5}
+          placeholder="e.g. 150"
+          className="h-12 w-36 rounded-md border border-brand-rose/50 px-3 text-lg focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/30"
+        />
+      </div>
       <button
         type="submit"
         disabled={pending}

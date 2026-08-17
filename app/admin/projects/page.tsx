@@ -1,10 +1,10 @@
 import { AppShell } from "@/components/layout/AppShell";
 import { AddProjectForm } from "@/components/admin/AddProjectForm";
 import { ProjectRow } from "@/components/admin/ProjectRow";
-import { listAllProjects } from "@/lib/db/queries/projects";
+import { listProjectsWithActualHours } from "@/lib/db/queries/projects";
 
 export default async function AdminProjectsPage() {
-  const projects = await listAllProjects();
+  const projects = await listProjectsWithActualHours();
 
   return (
     <AppShell>
@@ -14,7 +14,14 @@ export default async function AdminProjectsPage() {
       </div>
       <div className="flex flex-col gap-2">
         {projects.map((p) => (
-          <ProjectRow key={p.id} id={p.id} name={p.name} isActive={p.isActive} />
+          <ProjectRow
+            key={p.id}
+            id={p.id}
+            name={p.name}
+            isActive={p.isActive}
+            budgetHours={p.budgetHours}
+            actualHours={p.actualHours}
+          />
         ))}
       </div>
     </AppShell>
