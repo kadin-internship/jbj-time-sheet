@@ -21,14 +21,13 @@ export function getProjectByName(name: string) {
   });
 }
 
-export async function listProjectsWithActualHours() {
+export async function listProjectsWithHours() {
   const rows = await db
     .select({
       id: projects.id,
       name: projects.name,
       isActive: projects.isActive,
       sortOrder: projects.sortOrder,
-      budgetHours: projects.budgetHours,
       actualHours: sql<string>`coalesce(sum(${timeEntries.hours}), 0)`,
     })
     .from(projects)
@@ -36,9 +35,5 @@ export async function listProjectsWithActualHours() {
     .groupBy(projects.id)
     .orderBy(asc(projects.sortOrder), asc(projects.name));
 
-  return rows.map((r) => ({
-    ...r,
-    budgetHours: r.budgetHours === null ? null : Number(r.budgetHours),
-    actualHours: Number(r.actualHours),
-  }));
+  return rows.map((r) => ({ ...r, actualHours: Number(r.actualHours) }));
 }

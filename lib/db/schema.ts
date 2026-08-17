@@ -41,7 +41,6 @@ export const projects = pgTable("projects", {
   name: varchar("name", { length: 128 }).notNull().unique(),
   isActive: boolean("is_active").notNull().default(true),
   sortOrder: integer("sort_order").notNull().default(0),
-  budgetHours: numeric("budget_hours", { precision: 6, scale: 2 }), // null = not tracked
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

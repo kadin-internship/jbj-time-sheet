@@ -6,7 +6,7 @@ import {
   listHoursByEmployeeForWeek,
   listWeeklyHoursTrend,
 } from "@/lib/db/queries/timesheets";
-import { listProjectsWithActualHours } from "@/lib/db/queries/projects";
+import { listProjectsWithHours } from "@/lib/db/queries/projects";
 import { countPendingPtoRequests } from "@/lib/db/queries/pto";
 import { formatDateISO, getWeekStart } from "@/lib/utils/week";
 
@@ -24,16 +24,13 @@ export default async function AdminDashboardPage() {
 
   const [employeeHours, projects, weeklyTrend, pendingPto] = await Promise.all([
     listHoursByEmployeeForWeek(weekStartISO),
-    listProjectsWithActualHours(),
+    listProjectsWithHours(),
     listWeeklyHoursTrend(8),
     countPendingPtoRequests(),
   ]);
 
   const totalHoursThisWeek = employeeHours.reduce((sum, e) => sum + e.hours, 0);
   const overtimeCount = employeeHours.filter((e) => e.hours > 40).length;
-  const overBudgetCount = projects.filter(
-    (p) => p.budgetHours !== null && p.actualHours > p.budgetHours,
-  ).length;
 
   return (
     <AppShell>
@@ -42,7 +39,6 @@ export default async function AdminDashboardPage() {
       <div className="mb-6 flex flex-wrap gap-4">
         <StatTile label="Total Hours This Week" value={totalHoursThisWeek.toFixed(1)} />
         <StatTile label="Employees Over 40 hrs" value={overtimeCount} />
-        <StatTile label="Projects Over Budget" value={overBudgetCount} />
         <StatTile label="Pending PTO Requests" value={pendingPto} />
       </div>
 

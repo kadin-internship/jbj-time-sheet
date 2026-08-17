@@ -50,7 +50,7 @@ export async function GET(req: Request) {
   return new NextResponse(new Uint8Array(zipBuffer), {
     headers: {
       "Content-Type": "application/zip",
-      "Content-Disposition": `attachment; filename="JBJ_Timesheets_${zipDatePart}.zip"`,
+      "Content-Disposition": `attachment; filename="${zipDatePart}_JBJ_Timesheets.zip"`,
     },
   });
 }
