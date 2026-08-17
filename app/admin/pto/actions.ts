@@ -2,7 +2,7 @@
 
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { auth } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth/guards";
 import { db } from "@/lib/db/client";
 import { ptoRequests, timeEntries, weeklyTimesheets } from "@/lib/db/schema";
 import { getPtoRequestById } from "@/lib/db/queries/pto";
@@ -10,12 +10,6 @@ import { getProjectByName } from "@/lib/db/queries/projects";
 import { addDays, formatDateISO, getWeekStart, parseDateISO } from "@/lib/utils/week";
 import { hoursBetween } from "@/lib/utils/time";
 import { recordAudit } from "@/lib/audit/log";
-
-async function requireAdmin() {
-  const session = await auth();
-  if (!session?.user || session.user.role !== "admin") throw new Error("Not authorized");
-  return session;
-}
 
 const PTO_PROJECT_NAME: Record<"pto" | "sick", string> = {
   pto: "PTO",

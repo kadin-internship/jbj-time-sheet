@@ -28,6 +28,16 @@ export default auth((req) => {
     return NextResponse.redirect(new URL("/", req.nextUrl.origin));
   }
 
+  // "/" is excluded here and instead redirects via app/page.tsx's own redirect(). A raw
+  // NextResponse.redirect() issued from here doesn't reliably update the browser's URL when
+  // the request is the client router's soft-navigation fetch immediately following a Server
+  // Action redirect (e.g. right after login) — it's followed as a transparent HTTP redirect at
+  // the fetch layer rather than a real top-level navigation, so the address bar never updates.
+  // A full top-level navigation to any other protected path is unaffected and still redirects.
+  if (user?.mustChangePassword && pathname !== "/change-password" && pathname !== "/") {
+    return NextResponse.redirect(new URL("/change-password", req.nextUrl.origin));
+  }
+
   return NextResponse.next();
 });
 

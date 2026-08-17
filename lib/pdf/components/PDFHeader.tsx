@@ -15,10 +15,15 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 12,
   },
+  logoBadge: {
+    backgroundColor: BRAND_COLORS.white,
+    borderRadius: 6,
+    padding: 4,
+  },
   logo: {
     width: 32,
     height: 32,
-    borderRadius: 4,
+    borderRadius: 3,
   },
   titleTextBlock: {
     flex: 1,
@@ -49,7 +54,9 @@ export function PDFHeader({ data, subtitle }: { data: PdfTimesheetData; subtitle
   return (
     <View>
       <View style={styles.titleBar}>
-        <Image src={LOGO_PATH} style={styles.logo} />
+        <View style={styles.logoBadge}>
+          <Image src={LOGO_PATH} style={styles.logo} />
+        </View>
         <View style={styles.titleTextBlock}>
           <Text style={styles.title}>{SHEET_TITLE}</Text>
           <Text style={{ fontSize: 11, textAlign: "center", marginTop: 2, color: BRAND_COLORS.white }}>

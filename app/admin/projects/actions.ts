@@ -3,16 +3,9 @@
 import { z } from "zod";
 import { eq, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { auth } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth/guards";
 import { db } from "@/lib/db/client";
 import { projects } from "@/lib/db/schema";
-
-async function requireAdmin() {
-  const session = await auth();
-  if (!session?.user || session.user.role !== "admin") {
-    throw new Error("Not authorized");
-  }
-}
 
 const createProjectSchema = z.object({
   name: z.string().trim().min(1).max(128),

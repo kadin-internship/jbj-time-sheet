@@ -33,6 +33,9 @@ export const users = pgTable("users", {
   fullName: varchar("full_name", { length: 128 }).notNull(),
   role: roleEnum("role").notNull().default("employee"),
   active: boolean("active").notNull().default(true),
+  mustChangePassword: boolean("must_change_password").notNull().default(false),
+  failedLoginAttempts: integer("failed_login_attempts").notNull().default(0),
+  lockedUntil: timestamp("locked_until"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

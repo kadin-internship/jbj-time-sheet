@@ -3,15 +3,9 @@
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { auth } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth/guards";
 import { db } from "@/lib/db/client";
 import { meetingAttendees, meetingMinutes } from "@/lib/db/schema";
-
-async function requireAdmin() {
-  const session = await auth();
-  if (!session?.user || session.user.role !== "admin") throw new Error("Not authorized");
-  return session;
-}
 
 const createMeetingSchema = z.object({
   meetingDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),

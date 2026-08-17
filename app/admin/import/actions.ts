@@ -4,7 +4,7 @@ import ExcelJS from "exceljs";
 import { z } from "zod";
 import { and, eq, isNull } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { auth } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth/guards";
 import { db } from "@/lib/db/client";
 import { timeEntries } from "@/lib/db/schema";
 import { listUsers } from "@/lib/db/queries/users";
@@ -12,9 +12,21 @@ import { listActiveProjects } from "@/lib/db/queries/projects";
 import { getOrCreateWeeklyTimesheet } from "@/lib/db/queries/timesheets";
 import { parseLegacyTimesheet, type ParsedTimesheet } from "@/lib/excel/importLegacyTimesheet";
 
-async function requireAdmin() {
-  const session = await auth();
-  if (!session?.user || session.user.role !== "admin") throw new Error("Not authorized");
+const MAX_IMPORT_FILE_BYTES = 10 * 1024 * 1024;
+const ALLOWED_IMPORT_EXTENSIONS = [".xlsx", ".xlsm"];
+
+function emptyParsedTimesheet(fileName: string, warning: string): ParsedTimesheet {
+  return {
+    sourceFileName: fileName,
+    detectedEmployeeName: null,
+    matchedUserId: null,
+    weekStartDate: null,
+    weekEndDate: null,
+    checkDate: null,
+    weekDates: [],
+    rows: [],
+    warnings: [warning],
+  };
 }
 
 export async function parseImportFilesAction(formData: FormData): Promise<ParsedTimesheet[]> {
@@ -25,6 +37,18 @@ export async function parseImportFilesAction(formData: FormData): Promise<Parsed
 
   const results: ParsedTimesheet[] = [];
   for (const file of files) {
+    const hasAllowedExtension = ALLOWED_IMPORT_EXTENSIONS.some((ext) =>
+      file.name.toLowerCase().endsWith(ext),
+    );
+    if (!hasAllowedExtension) {
+      results.push(emptyParsedTimesheet(file.name, "Only .xlsx or .xlsm files are supported."));
+      continue;
+    }
+    if (file.size > MAX_IMPORT_FILE_BYTES) {
+      results.push(emptyParsedTimesheet(file.name, "File is too large (10 MB limit)."));
+      continue;
+    }
+
     const buffer = Buffer.from(await file.arrayBuffer());
     const workbook = new ExcelJS.Workbook();
     try {
@@ -33,17 +57,7 @@ export async function parseImportFilesAction(formData: FormData): Promise<Parsed
       await workbook.xlsx.load(buffer as any);
       results.push(parseLegacyTimesheet(workbook, file.name, users, projects));
     } catch {
-      results.push({
-        sourceFileName: file.name,
-        detectedEmployeeName: null,
-        matchedUserId: null,
-        weekStartDate: null,
-        weekEndDate: null,
-        checkDate: null,
-        weekDates: [],
-        rows: [],
-        warnings: ["Could not read this file as an Excel workbook."],
-      });
+      results.push(emptyParsedTimesheet(file.name, "Could not read this file as an Excel workbook."));
     }
   }
   return results;

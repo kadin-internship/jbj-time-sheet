@@ -3,9 +3,9 @@ import { LoginForm } from "./login-form";
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ callbackUrl?: string }>;
+  searchParams: Promise<{ callbackUrl?: string; passwordChanged?: string }>;
 }) {
-  const { callbackUrl } = await searchParams;
+  const { callbackUrl, passwordChanged } = await searchParams;
 
   return (
     <div className="flex flex-1 items-center justify-center bg-brand-white px-4">
@@ -14,6 +14,11 @@ export default async function LoginPage({
           JBJ Time Sheet
         </h1>
         <p className="mb-6 text-center text-brand-gray">Sign in to continue</p>
+        {passwordChanged && (
+          <p className="mb-4 rounded-md bg-brand-rose/20 p-3 text-center text-base text-brand-gray">
+            Password updated. Sign in with your new password.
+          </p>
+        )}
         <LoginForm callbackUrl={callbackUrl ?? "/"} />
       </div>
     </div>

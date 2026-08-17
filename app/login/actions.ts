@@ -2,6 +2,7 @@
 
 import { signIn } from "@/lib/auth";
 import { AuthError } from "next-auth";
+import { getUserByUsername } from "@/lib/db/queries/users";
 
 export async function loginAction(
   _prevState: { error: string | null },
@@ -10,6 +11,14 @@ export async function loginAction(
   const username = String(formData.get("username") ?? "");
   const password = String(formData.get("password") ?? "");
   const callbackUrl = String(formData.get("callbackUrl") ?? "/");
+
+  const existing = await getUserByUsername(username);
+  if (existing?.lockedUntil && existing.lockedUntil.getTime() > Date.now()) {
+    const minutesLeft = Math.ceil((existing.lockedUntil.getTime() - Date.now()) / 60_000);
+    return {
+      error: `Too many failed attempts. Try again in ${minutesLeft} minute${minutesLeft === 1 ? "" : "s"}.`,
+    };
+  }
 
   try {
     await signIn("credentials", {

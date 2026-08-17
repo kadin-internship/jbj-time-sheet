@@ -4,18 +4,10 @@ import { z } from "zod";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
-import { auth } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth/guards";
 import { db } from "@/lib/db/client";
 import { users } from "@/lib/db/schema";
 import { generateTempPassword } from "@/lib/utils/password";
-
-async function requireAdmin() {
-  const session = await auth();
-  if (!session?.user || session.user.role !== "admin") {
-    throw new Error("Not authorized");
-  }
-  return session;
-}
 
 const createEmployeeSchema = z.object({
   fullName: z.string().trim().min(1).max(128),
@@ -55,6 +47,7 @@ export async function createEmployeeAction(
     username: parsed.data.username,
     role: parsed.data.role,
     passwordHash: await bcrypt.hash(tempPassword, 12),
+    mustChangePassword: true,
   });
 
   revalidatePath("/admin/employees");
@@ -74,7 +67,12 @@ export async function resetPasswordAction(
   const tempPassword = generateTempPassword();
   await db
     .update(users)
-    .set({ passwordHash: await bcrypt.hash(tempPassword, 12) })
+    .set({
+      passwordHash: await bcrypt.hash(tempPassword, 12),
+      mustChangePassword: true,
+      failedLoginAttempts: 0,
+      lockedUntil: null,
+    })
     .where(eq(users.id, userId));
   revalidatePath("/admin/employees");
   return { error: null, tempPassword };
