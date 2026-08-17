@@ -31,12 +31,17 @@ export default async function AdminDashboardPage() {
 
   const totalHoursThisWeek = employeeHours.reduce((sum, e) => sum + e.hours, 0);
   const overtimeCount = employeeHours.filter((e) => e.hours > 40).length;
+  const activeEmployeeCount = employeeHours.filter((e) => e.hours > 0).length;
 
   return (
     <AppShell>
       <h1 className="mb-4 text-2xl font-bold text-brand-gray">Dashboard</h1>
 
       <div className="mb-6 flex flex-wrap gap-4">
+        <StatTile
+          label="Active Employees This Week"
+          value={`${activeEmployeeCount} / ${employeeHours.length}`}
+        />
         <StatTile label="Total Hours This Week" value={totalHoursThisWeek.toFixed(1)} />
         <StatTile label="Employees Over 40 hrs" value={overtimeCount} />
         <StatTile label="Pending PTO Requests" value={pendingPto} />
