@@ -48,7 +48,7 @@ export default async function DashboardPage() {
         <h1 className="text-2xl font-bold text-brand-gray">This Week</h1>
         <p className="flex items-center gap-3 text-brand-gray">
           {formatWeekRange(timesheet.weekStartDate, timesheet.weekEndDate)}
-          {weekTotal > 40 && <AlertBadge>Overtime — {weekTotal.toFixed(2)} hrs</AlertBadge>}
+          {weekTotal > 40 && <AlertBadge>Overtime: {weekTotal.toFixed(2)} hrs</AlertBadge>}
         </p>
       </div>
 

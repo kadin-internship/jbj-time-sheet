@@ -61,7 +61,7 @@ export function AddEmployeeForm() {
       {state.tempPassword && (
         <p className="rounded-md bg-brand-rose/20 p-3 text-base text-brand-gray">
           Employee created. Temporary password:{" "}
-          <span className="font-mono font-bold">{state.tempPassword}</span> — share this with
+          <span className="font-mono font-bold">{state.tempPassword}</span>. Share this with
           them; it will not be shown again.
         </p>
       )}

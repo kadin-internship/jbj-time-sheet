@@ -68,7 +68,7 @@ export default async function TimesheetWeekPage({
           <Link href={`/timesheets/${nextWeek}`} className="text-lg text-brand-red hover:underline">
             Next Week &rarr;
           </Link>
-          {weekTotal > 40 && <AlertBadge>Overtime — {weekTotal.toFixed(2)} hrs</AlertBadge>}
+          {weekTotal > 40 && <AlertBadge>Overtime: {weekTotal.toFixed(2)} hrs</AlertBadge>}
         </div>
       </div>
 

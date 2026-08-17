@@ -60,7 +60,7 @@ export function ImportWorkspace({ users }: { users: KnownUser[] }) {
         className="flex flex-col gap-3 rounded-md border border-brand-rose/40 p-4"
       >
         <label className="text-lg font-medium text-brand-gray" htmlFor="files">
-          Legacy Timesheet Files (.xlsx / .xlsm) — select one or more
+          Legacy Timesheet Files (.xlsx / .xlsm): select one or more
         </label>
         <input
           id="files"

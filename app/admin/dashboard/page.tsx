@@ -47,17 +47,17 @@ export default async function AdminDashboardPage() {
       </div>
 
       <div className="mb-6 rounded-md border border-brand-rose/40 p-4">
-        <h2 className="mb-3 text-xl font-bold text-brand-gray">Hours by Employee — This Week</h2>
+        <h2 className="mb-3 text-xl font-bold text-brand-gray">Hours by Employee (This Week)</h2>
         <HoursByEmployeeChart data={employeeHours} />
       </div>
 
       <div className="mb-6 rounded-md border border-brand-rose/40 p-4">
-        <h2 className="mb-3 text-xl font-bold text-brand-gray">Hours by Project — All Time</h2>
+        <h2 className="mb-3 text-xl font-bold text-brand-gray">Hours by Project (All Time)</h2>
         <HoursByProjectChart data={projects} />
       </div>
 
       <div className="rounded-md border border-brand-rose/40 p-4">
-        <h2 className="mb-3 text-xl font-bold text-brand-gray">Weekly Trend — Last 8 Weeks</h2>
+        <h2 className="mb-3 text-xl font-bold text-brand-gray">Weekly Trend (Last 8 Weeks)</h2>
         <WeeklyTrendChart data={weeklyTrend} />
       </div>
     </AppShell>

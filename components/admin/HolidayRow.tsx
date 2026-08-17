@@ -17,8 +17,9 @@ export function HolidayRow({ id, date, name }: { id: string; date: string; name:
             day: "numeric",
             year: "numeric",
           })}
+          :
         </span>{" "}
-        — {name}
+        {name}
       </span>
       <button
         type="button"

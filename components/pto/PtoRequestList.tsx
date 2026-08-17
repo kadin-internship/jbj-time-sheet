@@ -42,8 +42,7 @@ export function PtoRequestList({ requests }: { requests: PtoRequest[] }) {
         <div key={r.id} className="flex flex-col gap-1 rounded-md border border-brand-rose/40 p-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="text-lg text-brand-gray">
-              <span className="font-semibold">{TYPE_LABEL[r.type] ?? r.type}</span>
-              {" — "}
+              <span className="font-semibold">{TYPE_LABEL[r.type] ?? r.type}:</span>{" "}
               {fmt(r.startDate)} to {fmt(r.endDate)}
             </span>
             <span className={`text-base font-semibold ${STATUS_COLOR[r.status] ?? ""}`}>

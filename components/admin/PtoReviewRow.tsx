@@ -33,8 +33,8 @@ export function PtoReviewRow({ request }: { request: Request }) {
     <div className="flex flex-col gap-2 rounded-md border border-brand-rose/40 p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="text-lg text-brand-gray">
-          <span className="font-semibold">{request.employeeName}</span> — {TYPE_LABEL[request.type] ?? request.type}
-          {" — "}
+          <span className="font-semibold">{request.employeeName}</span> ({TYPE_LABEL[request.type] ?? request.type})
+          {", "}
           {fmt(request.startDate)} to {fmt(request.endDate)}
         </span>
         <span className="text-base font-semibold text-brand-gray">

@@ -59,7 +59,7 @@ export function TimeEntryList({
                             ? formatTimeRange(entry.startTime, entry.endTime)
                             : "Imported, no time logged"}
                         </span>
-                        {" — "}
+                        {" · "}
                         {projectName(entry.projectId)}
                       </span>
                       <span className="text-base font-semibold text-brand-gray">
@@ -69,7 +69,7 @@ export function TimeEntryList({
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <span className="text-base text-brand-gray">
                         {activityTypeLabel(entry.activityType)}
-                        {entry.notes ? ` — ${entry.notes}` : ""}
+                        {entry.notes ? ` · ${entry.notes}` : ""}
                       </span>
                       <div className="flex gap-2">
                         <button

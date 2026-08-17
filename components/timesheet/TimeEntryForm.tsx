@@ -221,7 +221,7 @@ export function TimeEntryForm({
 
       <div className="flex flex-col gap-1">
         <label className="text-base font-medium text-brand-gray" htmlFor="notes">
-          Notes (optional) — what did you work on?
+          Notes (optional): what did you work on?
         </label>
         <textarea
           id="notes"

@@ -204,7 +204,7 @@ export function parseLegacyTimesheet(
     const label = columnProjectName.get(c);
     if (!label) continue;
     const matchedProject = knownProjects.find((p) => normalize(p.name) === normalize(label));
-    if (!matchedProject) warnings.push(`No matching project for "${label}" — its hours will be skipped.`);
+    if (!matchedProject) warnings.push(`No matching project for "${label}". Its hours will be skipped.`);
     projectRowByCol.set(c, {
       label,
       matchedProjectId: matchedProject ? matchedProject.id : null,
