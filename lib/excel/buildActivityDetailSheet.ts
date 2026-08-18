@@ -1,6 +1,5 @@
 import ExcelJS from "exceljs";
 import { activityTypeLabel } from "@/lib/constants/activityTypes";
-import { formatTimeRange } from "@/lib/utils/time";
 import type { PdfTimesheetData } from "@/lib/pdf/types";
 
 const ARGB = {
@@ -13,7 +12,7 @@ export function buildActivityDetailSheet(workbook: ExcelJS.Workbook, data: PdfTi
 
   sheet.columns = [
     { header: "Date", key: "date", width: 12 },
-    { header: "Time", key: "time", width: 22 },
+    { header: "Hours", key: "hours", width: 10 },
     { header: "Project", key: "project", width: 28 },
     { header: "Type", key: "type", width: 16 },
     { header: "Notes", key: "notes", width: 50 },
@@ -28,10 +27,7 @@ export function buildActivityDetailSheet(workbook: ExcelJS.Workbook, data: PdfTi
   for (const entry of data.activityEntries) {
     sheet.addRow({
       date: entry.entryDate,
-      time:
-        entry.startTime && entry.endTime
-          ? formatTimeRange(entry.startTime, entry.endTime)
-          : "Imported",
+      hours: entry.hours,
       project: entry.projectName,
       type: activityTypeLabel(entry.activityType),
       notes: entry.notes ?? "",

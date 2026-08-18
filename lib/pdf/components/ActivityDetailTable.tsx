@@ -1,7 +1,6 @@
 import { View, Text, StyleSheet } from "@react-pdf/renderer";
 import { BRAND_COLORS } from "@/lib/constants/brand";
 import { activityTypeLabel } from "@/lib/constants/activityTypes";
-import { formatTimeRange } from "@/lib/utils/time";
 import { parseDateISO } from "@/lib/utils/week";
 import type { PdfTimesheetData } from "@/lib/pdf/types";
 
@@ -29,10 +28,10 @@ const styles = StyleSheet.create({
   headerCell: { color: BRAND_COLORS.white, fontSize: 8, fontWeight: 700, padding: 4 },
   cell: { fontSize: 8, padding: 4, color: BRAND_COLORS.gray },
   dateCol: { width: "12%" },
-  timeCol: { width: "20%" },
-  projectCol: { width: "20%" },
-  typeCol: { width: "14%" },
-  notesCol: { width: "34%" },
+  hoursCol: { width: "10%" },
+  projectCol: { width: "22%" },
+  typeCol: { width: "16%" },
+  notesCol: { width: "40%" },
 });
 
 function formatDateShort(iso: string) {
@@ -48,7 +47,7 @@ export function ActivityDetailTable({ data }: { data: PdfTimesheetData }) {
       <View style={styles.table}>
         <View style={styles.headerRow}>
           <Text style={[styles.headerCell, styles.dateCol]}>Date</Text>
-          <Text style={[styles.headerCell, styles.timeCol]}>Time</Text>
+          <Text style={[styles.headerCell, styles.hoursCol]}>Hours</Text>
           <Text style={[styles.headerCell, styles.projectCol]}>Project</Text>
           <Text style={[styles.headerCell, styles.typeCol]}>Type</Text>
           <Text style={[styles.headerCell, styles.notesCol]}>Notes</Text>
@@ -56,11 +55,7 @@ export function ActivityDetailTable({ data }: { data: PdfTimesheetData }) {
         {data.activityEntries.map((entry, i) => (
           <View key={i} style={styles.row}>
             <Text style={[styles.cell, styles.dateCol]}>{formatDateShort(entry.entryDate)}</Text>
-            <Text style={[styles.cell, styles.timeCol]}>
-              {entry.startTime && entry.endTime
-                ? formatTimeRange(entry.startTime, entry.endTime)
-                : "Imported"}
-            </Text>
+            <Text style={[styles.cell, styles.hoursCol]}>{entry.hours.toFixed(2)}</Text>
             <Text style={[styles.cell, styles.projectCol]}>{entry.projectName}</Text>
             <Text style={[styles.cell, styles.typeCol]}>{activityTypeLabel(entry.activityType)}</Text>
             <Text style={[styles.cell, styles.notesCol]}>{entry.notes ?? ""}</Text>

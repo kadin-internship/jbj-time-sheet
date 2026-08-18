@@ -31,7 +31,7 @@ function defaultStartTimeForDay(entries: TimeEntryRecord[], entryDate: string): 
   const sameDay = entries.filter(
     (e): e is TimeEntryRecord & { endTime: string } => e.entryDate === entryDate && e.endTime !== null,
   );
-  if (sameDay.length === 0) return "";
+  if (sameDay.length === 0) return "09:00";
   return sameDay.reduce((latest, e) => (e.endTime > latest ? e.endTime : latest), sameDay[0].endTime);
 }
 

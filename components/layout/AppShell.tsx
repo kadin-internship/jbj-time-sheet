@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { logoutAction } from "@/app/logout-action";
-import { countPendingPtoRequests } from "@/lib/db/queries/pto";
 import { MoreMenu } from "@/components/layout/MoreMenu";
 
 const ADMIN_MORE_ITEMS = [
@@ -18,7 +17,6 @@ const ADMIN_MORE_ITEMS = [
 export async function AppShell({ children }: { children: ReactNode }) {
   const session = await auth();
   const user = session?.user;
-  const pendingPtoCount = user?.role === "admin" ? await countPendingPtoRequests() : 0;
 
   return (
     <div className="flex min-h-full flex-1 flex-col">
@@ -35,9 +33,6 @@ export async function AppShell({ children }: { children: ReactNode }) {
               <Link href="/timesheets" className="hover:underline">
                 Past Timesheets
               </Link>
-              <Link href="/pto" className="hover:underline">
-                Time Off
-              </Link>
             </nav>
           )}
           {user?.role === "admin" && (
@@ -47,14 +42,6 @@ export async function AppShell({ children }: { children: ReactNode }) {
               </Link>
               <Link href="/admin/timesheets" className="hover:underline">
                 Timesheets
-              </Link>
-              <Link href="/admin/pto" className="flex items-center gap-1.5 hover:underline">
-                PTO Requests
-                {pendingPtoCount > 0 && (
-                  <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-brand-rose px-1 text-xs font-bold text-brand-maroon">
-                    {pendingPtoCount}
-                  </span>
-                )}
               </Link>
               <MoreMenu items={ADMIN_MORE_ITEMS} />
             </nav>
