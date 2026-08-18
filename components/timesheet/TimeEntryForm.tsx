@@ -27,13 +27,7 @@ export type TimeEntryFormValues = {
 type Project = { id: string; name: string };
 type WeekDate = { date: string; label: string };
 
-function defaultStartTimeForDay(entries: TimeEntryRecord[], entryDate: string): string {
-  const sameDay = entries.filter(
-    (e): e is TimeEntryRecord & { endTime: string } => e.entryDate === entryDate && e.endTime !== null,
-  );
-  if (sameDay.length === 0) return "09:00";
-  return sameDay.reduce((latest, e) => (e.endTime > latest ? e.endTime : latest), sameDay[0].endTime);
-}
+const DEFAULT_START_TIME = "09:00";
 
 function mostUsedProjectId(entries: TimeEntryRecord[]): string {
   if (entries.length === 0) return "";
@@ -75,7 +69,7 @@ export function TimeEntryForm({
     return {
       projectId: mostUsedProjectId(existingEntries) || projects[0]?.id || "",
       entryDate,
-      startTime: defaultStartTimeForDay(existingEntries, entryDate),
+      startTime: DEFAULT_START_TIME,
       endTime: "",
       activityType: "project_work",
       notes: "",
@@ -96,7 +90,7 @@ export function TimeEntryForm({
     setValues((v) => ({
       ...v,
       entryDate,
-      startTime: startTouched ? v.startTime : defaultStartTimeForDay(existingEntries, entryDate),
+      startTime: startTouched ? v.startTime : DEFAULT_START_TIME,
     }));
   }
 
