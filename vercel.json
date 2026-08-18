@@ -6,7 +6,7 @@
     },
     {
       "path": "/api/cron/drive-sync",
-      "schedule": "0 20 * * 0"
+      "schedule": "0 23 * * 5"
     }
   ]
 }

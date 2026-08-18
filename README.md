@@ -103,8 +103,8 @@ check or the upload step.
 
 ## Scheduled Google Drive export
 
-`app/api/cron/drive-sync/route.tsx` runs weekly (Sunday, per the cron
-schedule in `vercel.json`) and, for every employee with a timesheet that
+`app/api/cron/drive-sync/route.tsx` runs weekly (Friday evening, per the
+cron schedule in `vercel.json`) and, for every employee with a timesheet that
 week, generates the branded weekly PDF and uploads it into that employee's
 subfolder inside a shared Google Drive folder, matched by their full name
 exactly as it appears in the app. If a file with the same name already
