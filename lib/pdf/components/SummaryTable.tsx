@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet } from "@react-pdf/renderer";
 import { BRAND_COLORS } from "@/lib/constants/brand";
 import { computeTotals } from "@/lib/utils/totals";
+import { filterVisibleProjects } from "@/lib/pdf/visibleProjects";
 import type { PdfTimesheetData } from "@/lib/pdf/types";
 
 const styles = StyleSheet.create({
@@ -40,7 +41,7 @@ export function SummaryTable({ data }: { data: PdfTimesheetData }) {
     })),
   );
   const totals = computeTotals(entries);
-  const worked = data.projects.filter((p) => (totals.projectTotals[p.id] ?? 0) > 0);
+  const worked = filterVisibleProjects(data.projects, totals.projectTotals);
 
   return (
     <View style={styles.table}>

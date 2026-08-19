@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet } from "@react-pdf/renderer";
 import { BRAND_COLORS } from "@/lib/constants/brand";
 import { computeTotals } from "@/lib/utils/totals";
+import { filterVisibleProjects } from "@/lib/pdf/visibleProjects";
 import type { PdfTimesheetData } from "@/lib/pdf/types";
 
 const styles = StyleSheet.create({
@@ -55,6 +56,7 @@ export function GridTable({ data }: { data: PdfTimesheetData }) {
     })),
   );
   const totals = computeTotals(entries);
+  const visibleProjects = filterVisibleProjects(data.projects, totals.projectTotals);
 
   return (
     <View style={styles.table}>
@@ -68,7 +70,7 @@ export function GridTable({ data }: { data: PdfTimesheetData }) {
         <Text style={[styles.headerCell, styles.totalCol]}>Total</Text>
       </View>
 
-      {data.projects.map((project) => (
+      {visibleProjects.map((project) => (
         <View key={project.id} style={styles.row}>
           <Text style={[styles.cell, styles.projectCol]}>{project.name}</Text>
           {data.weekDates.map((wd) => {
