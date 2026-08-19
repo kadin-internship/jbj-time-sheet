@@ -4,7 +4,7 @@ import { BRAND_COLORS, SHEET_TITLE } from "@/lib/constants/brand";
 import { formatWeekRange } from "@/lib/utils/week";
 import type { PdfTimesheetData } from "@/lib/pdf/types";
 
-const LOGO_PATH = path.join(process.cwd(), "public/icons/icon-512.png");
+const LOGO_PATH = path.join(process.cwd(), "public/logo/jbj-management-logo.jpeg");
 
 const styles = StyleSheet.create({
   titleBar: {
@@ -21,9 +21,8 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   logo: {
-    width: 32,
-    height: 32,
-    borderRadius: 3,
+    width: 42,
+    height: 42,
   },
   titleTextBlock: {
     flex: 1,
