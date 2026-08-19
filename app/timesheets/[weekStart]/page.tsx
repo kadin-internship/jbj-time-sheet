@@ -4,6 +4,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { TimeEntryWorkspace } from "@/components/timesheet/TimeEntryWorkspace";
 import { WeeklyActivityNotes } from "@/components/timesheet/WeeklyActivityNotes";
 import { HolidayPrompt } from "@/components/timesheet/HolidayPrompt";
+import { WeekPicker } from "@/components/timesheet/WeekPicker";
 import { AlertBadge } from "@/components/shared/AlertBadge";
 import { auth } from "@/lib/auth";
 import { listActiveProjects, getProjectByName } from "@/lib/db/queries/projects";
@@ -57,7 +58,7 @@ export default async function TimesheetWeekPage({
 
   return (
     <AppShell>
-      <div className="mb-4 flex flex-col gap-1">
+      <div className="mb-4 flex flex-col gap-2">
         <div className="flex items-center gap-4">
           <Link href={`/timesheets/${prevWeek}`} className="text-lg text-brand-red hover:underline">
             &larr; Prev Week
@@ -70,6 +71,7 @@ export default async function TimesheetWeekPage({
           </Link>
           {weekTotal > 40 && <AlertBadge>Overtime: {weekTotal.toFixed(2)} hrs</AlertBadge>}
         </div>
+        <WeekPicker currentWeekStart={weekStart} />
       </div>
 
       <HolidayPrompt timesheetId={timesheet.id} holidays={unloggedHolidays} />

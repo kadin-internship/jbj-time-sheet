@@ -2,6 +2,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { TimeEntryWorkspace } from "@/components/timesheet/TimeEntryWorkspace";
 import { WeeklyActivityNotes } from "@/components/timesheet/WeeklyActivityNotes";
 import { HolidayPrompt } from "@/components/timesheet/HolidayPrompt";
+import { WeekPicker } from "@/components/timesheet/WeekPicker";
 import { AlertBadge } from "@/components/shared/AlertBadge";
 import { auth } from "@/lib/auth";
 import { listActiveProjects, getProjectByName } from "@/lib/db/queries/projects";
@@ -44,12 +45,13 @@ export default async function DashboardPage() {
 
   return (
     <AppShell>
-      <div className="mb-4 flex flex-col gap-1">
+      <div className="mb-4 flex flex-col gap-2">
         <h1 className="text-2xl font-bold text-brand-gray">This Week</h1>
         <p className="flex items-center gap-3 text-brand-gray">
           {formatWeekRange(timesheet.weekStartDate, timesheet.weekEndDate)}
           {weekTotal > 40 && <AlertBadge>Overtime: {weekTotal.toFixed(2)} hrs</AlertBadge>}
         </p>
+        <WeekPicker currentWeekStart={weekStartISO} />
       </div>
 
       <HolidayPrompt timesheetId={timesheet.id} holidays={unloggedHolidays} />
