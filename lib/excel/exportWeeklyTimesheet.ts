@@ -2,6 +2,7 @@ import ExcelJS from "exceljs";
 import { BRAND_COLORS, SHEET_TITLE } from "@/lib/constants/brand";
 import { computeTotals } from "@/lib/utils/totals";
 import { buildActivityDetailSheet } from "@/lib/excel/buildActivityDetailSheet";
+import { filterVisibleProjects } from "@/lib/pdf/visibleProjects";
 import type { PdfTimesheetData } from "@/lib/pdf/types";
 
 const ARGB = {
@@ -24,13 +25,23 @@ export async function exportWeeklyTimesheet(data: PdfTimesheetData): Promise<Exc
     pageSetup: { paperSize: 9, orientation: "landscape", fitToPage: true },
   });
 
+  const allEntries = data.projects.flatMap((p) =>
+    data.weekDates.map((wd) => ({
+      projectId: p.id,
+      entryDate: wd.date,
+      hours: data.hours[p.id]?.[wd.date] ?? 0,
+    })),
+  );
+  const totals = computeTotals(allEntries);
+  const visibleProjects = filterVisibleProjects(data.projects, totals.projectTotals);
+
   const taskCol = (i: number) => 3 + i; // column C onward = task 1..N
-  const totalCol = 3 + data.projects.length;
+  const totalCol = 3 + visibleProjects.length;
   const lastCol = totalCol;
 
   sheet.getColumn(1).width = 12; // Date
   sheet.getColumn(2).width = 12; // Day of Week
-  for (let i = 0; i < data.projects.length; i++) sheet.getColumn(taskCol(i)).width = 9;
+  for (let i = 0; i < visibleProjects.length; i++) sheet.getColumn(taskCol(i)).width = 9;
   sheet.getColumn(totalCol).width = 10;
 
   // Title
@@ -65,7 +76,7 @@ export async function exportWeeklyTimesheet(data: PdfTimesheetData): Promise<Exc
   const headerRow = sheet.getRow(headerRowNum);
   headerRow.getCell(1).value = "Date";
   headerRow.getCell(2).value = "Day of Week";
-  data.projects.forEach((_, i) => {
+  visibleProjects.forEach((_, i) => {
     headerRow.getCell(taskCol(i)).value = i + 1;
   });
   headerRow.getCell(totalCol).value = "Total";
@@ -77,15 +88,6 @@ export async function exportWeeklyTimesheet(data: PdfTimesheetData): Promise<Exc
     cell.border = thinBorder();
   }
 
-  const entries = data.projects.flatMap((p) =>
-    data.weekDates.map((wd) => ({
-      projectId: p.id,
-      entryDate: wd.date,
-      hours: data.hours[p.id]?.[wd.date] ?? 0,
-    })),
-  );
-  const totals = computeTotals(entries);
-
   // Data rows: one per weekday
   data.weekDates.forEach((wd, i) => {
     const rowNum = headerRowNum + 1 + i;
@@ -93,7 +95,7 @@ export async function exportWeeklyTimesheet(data: PdfTimesheetData): Promise<Exc
     row.getCell(1).value = wd.date;
     row.getCell(2).value = wd.label;
     let rowTotal = 0;
-    data.projects.forEach((p, pi) => {
+    visibleProjects.forEach((p, pi) => {
       const value = data.hours[p.id]?.[wd.date] ?? 0;
       rowTotal += value;
       row.getCell(taskCol(pi)).value = value > 0 ? value : null;
@@ -112,7 +114,7 @@ export async function exportWeeklyTimesheet(data: PdfTimesheetData): Promise<Exc
   const totalsRow = sheet.getRow(totalsRowNum);
   totalsRow.getCell(1).value = "TOTALS";
   sheet.mergeCells(totalsRowNum, 1, totalsRowNum, 2);
-  data.projects.forEach((p, pi) => {
+  visibleProjects.forEach((p, pi) => {
     totalsRow.getCell(taskCol(pi)).value = totals.projectTotals[p.id] ?? 0;
   });
   totalsRow.getCell(totalCol).value = totals.weekTotal;
@@ -135,7 +137,7 @@ export async function exportWeeklyTimesheet(data: PdfTimesheetData): Promise<Exc
   sheet.getColumn(legendStartCol).width = 4;
   sheet.getColumn(legendStartCol + 1).width = 24;
 
-  data.projects.forEach((p, i) => {
+  visibleProjects.forEach((p, i) => {
     const rowNum = headerRowNum + 1 + i;
     sheet.getCell(rowNum, legendStartCol).value = i + 1;
     sheet.getCell(rowNum, legendStartCol + 1).value = p.name;
