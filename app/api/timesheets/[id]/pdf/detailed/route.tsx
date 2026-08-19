@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
+import JSZip from "jszip";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { auth } from "@/lib/auth";
 import { getTimesheetById } from "@/lib/db/queries/timesheets";
 import { buildTimesheetData } from "@/lib/pdf/buildTimesheetData";
 import { WeeklyTimesheetDocument } from "@/lib/pdf/WeeklyTimesheetDocument";
 import { buildExportFilename } from "@/lib/pdf/filename";
+import { splitTimesheetDataByMonth, weekSpansTwoMonths } from "@/lib/pdf/splitByMonth";
 
-export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await auth();
   if (!session?.user) return new NextResponse("Unauthorized", { status: 401 });
@@ -22,12 +24,30 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const data = await buildTimesheetData(id);
   if (!data) return new NextResponse("Not found", { status: 404 });
 
-  const buffer = await renderToBuffer(<WeeklyTimesheetDocument data={data} />);
+  const { searchParams } = new URL(req.url);
+  const shouldSplit = searchParams.get("split") === "true" && weekSpansTwoMonths(data.weekDates);
 
-  return new NextResponse(new Uint8Array(buffer), {
+  if (!shouldSplit) {
+    const buffer = await renderToBuffer(<WeeklyTimesheetDocument data={data} />);
+    return new NextResponse(new Uint8Array(buffer), {
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `attachment; filename="${buildExportFilename(data.employeeName, "Timesheet", data.weekStartDate, "pdf")}"`,
+      },
+    });
+  }
+
+  const zip = new JSZip();
+  for (const segment of splitTimesheetDataByMonth(data)) {
+    const buffer = await renderToBuffer(<WeeklyTimesheetDocument data={segment} />);
+    zip.file(buildExportFilename(segment.employeeName, "Timesheet", segment.weekStartDate, "pdf"), buffer);
+  }
+  const zipBuffer = await zip.generateAsync({ type: "nodebuffer" });
+
+  return new NextResponse(new Uint8Array(zipBuffer), {
     headers: {
-      "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="${buildExportFilename(data.employeeName, "Timesheet", data.weekStartDate, "pdf")}"`,
+      "Content-Type": "application/zip",
+      "Content-Disposition": `attachment; filename="${buildExportFilename(data.employeeName, "Timesheet_Split", data.weekStartDate, "zip")}"`,
     },
   });
 }
