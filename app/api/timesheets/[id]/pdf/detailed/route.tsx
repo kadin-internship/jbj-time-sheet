@@ -37,6 +37,10 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     });
   }
 
+  // Two separate direct downloads triggered client-side is unreliable: browsers commonly drop
+  // one of two automatic downloads fired from the same click, even when both server responses
+  // succeed (confirmed while building this — both requests returned 200, but only one file
+  // actually saved). A single zip download avoids that entirely.
   const zip = new JSZip();
   for (const segment of splitTimesheetDataByMonth(data)) {
     const buffer = await renderToBuffer(<WeeklyTimesheetDocument data={segment} />);
